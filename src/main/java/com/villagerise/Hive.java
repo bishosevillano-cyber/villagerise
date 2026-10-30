@@ -87,7 +87,7 @@ public final class Hive {
         if (split) v.attacksBySide[w.side[1]]++;
 
         int zombies = 3 + intensity * 3 / 2;
-        int skeletons = fort ? intensity + 1 : intensity / 2;       // más arqueros contra torretas
+        int skeletons = fort ? intensity + 1 : intensity / 2;        // más arqueros contra torretas
         int creepers = (walled ? 1 + intensity / 2 : intensity / 3) + (v.turretKills >= 5 ? 2 : 0); // zapadores
         int spiders = walled ? intensity / 2 : 0;                    // trepan murallas
         int ravagers = intensity / 5;
