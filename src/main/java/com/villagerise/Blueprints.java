@@ -51,7 +51,7 @@ public final class Blueprints {
         BlockState door = Blocks.OAK_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.NORTH);
         v.put(new BlockPos(cx, y0, cz + 2), door);
         v.put(new BlockPos(cx, y0 + 1, cz + 2), door.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER));
-        BlockState bed = Blocks.WHITE_BED.defaultBlockState().setValue(BedBlock.FACING, Direction.NORTH);
+        BlockState bed = Blocks.white_bed.defaultBlockState().setValue(BedBlock.FACING, Direction.NORTH);
         v.put(new BlockPos(cx, y0, cz), bed.setValue(BedBlock.PART, BedPart.FOOT));
         v.put(new BlockPos(cx, y0, cz - 1), bed.setValue(BedBlock.PART, BedPart.HEAD));
         for (int dx = -2; dx <= 2; dx++) for (int dz = -2; dz <= 2; dz++) v.put(new BlockPos(cx + dx, y0 + 3, cz + dz), planks);
