@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.villagerise.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["VillagerMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

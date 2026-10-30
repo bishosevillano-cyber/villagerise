@@ -1,0 +1,25 @@
+// NOTA: Desde 26.x Minecraft ya no está ofuscado: no hay "mappings" ni modImplementation.
+// Si algo no cuadra con tu versión de Loom, genera la plantilla oficial en https://fabricmc.net/develop
+// (elige 26.3) y copia dentro SOLO la carpeta src/ de este proyecto.
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+version = project.mod_version
+group = 'com.villagerise'
+base { archivesName = 'villagerise' }
+
+repositories { mavenCentral() }
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") { expand "version": project.version }
+}
+
+tasks.withType(JavaCompile).configureEach { options.release = 25 }
+java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }

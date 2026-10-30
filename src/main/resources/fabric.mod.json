@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "villagerise",
+  "version": "${version}",
+  "name": "Village Rise",
+  "description": "Los aldeanos reparan, luchan, se reproducen, recolectan y convierten su aldea en una fortaleza. Los enemigos aprenden y coordinan ataques.",
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": { "main": ["com.villagerise.VillageRise"] },
+  "mixins": ["villagerise.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
