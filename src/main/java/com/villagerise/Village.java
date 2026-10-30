@@ -2,9 +2,7 @@ package com.villagerise;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -16,6 +14,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
@@ -43,8 +42,9 @@ public class Village {
     public int projectsDone, wallMask, keeps, waveLevel, escalation, turretKills;
     public long nextWaveTime;
     public final int[] attacksBySide = new int[4], deathsBySide = new int[4];
-    public final Map<Long, BlockState> blueprint = new HashMap<>(); // "así debería verse la aldea"
+    public final Map<Long, BlockState> blueprint = new HashMap<>();
     public final List<Long> turrets = new ArrayList<>(), towers = new ArrayList<>(), farms = new ArrayList<>();
+    public final Set<UUID> turretArrowUuids = new HashSet<>();
 
     // ---- estado temporal ----
     public final ArrayDeque<Job> jobs = new ArrayDeque<>();
@@ -57,7 +57,6 @@ public class Village {
 
     public int level() { return Math.min(5, projectsDone / 3); }
 
-    // ================= tick (1 vez por segundo) =================
     public void tick(ServerLevel lvl) {
         tickCount++;
         List<Villager> vs = lvl.getEntitiesOfClass(Villager.class, new AABB(center).inflate(80));
@@ -65,11 +64,11 @@ public class Village {
         List<Villager> adults = vs.stream().filter(x -> !x.isBaby()).toList();
         boolean calm = lvl.getEntitiesOfClass(Monster.class, new AABB(center).inflate(60), Entity::isAlive).isEmpty();
 
-        if (ammo < 64 && wood >= 8 && tickCount % 5 == 0) { wood--; ammo += 8; } // fabrican flechas
+        if (ammo < 64 && wood >= 8 && tickCount % 5 == 0) { wood--; ammo += 8; }
         fireTurrets(lvl);
         Hive.tick(lvl, this, adults);
 
-        if (projectActive && jobs.isEmpty()) { // proyecto terminado
+        if (projectActive && jobs.isEmpty()) {
             projectActive = false;
             projectsDone++;
             tell(lvl, "§6Los aldeanos han terminado una obra. Nivel de aldea: " + level());
@@ -86,7 +85,6 @@ public class Village {
             if (p.blockPosition().distSqr(center) < 120 * 120) p.sendSystemMessage(Component.literal(msg));
     }
 
-    // ================= reparación =================
     private void scan(ServerLevel lvl, List<Villager> vs) {
         List<Villager> l = new ArrayList<>(vs);
         Collections.shuffle(l);
@@ -118,22 +116,19 @@ public class Village {
             if (!cur.is(want.getBlock()) && (cur.isAir() || cur.canBeReplaced())) found.add(new Job(k, want));
         }
         cursor = (cursor + 1500) % Math.max(1, keys.length);
-        found.sort(Comparator.comparingInt(j -> BlockPos.of(j.pos()).getY())); // de abajo hacia arriba
+        found.sort(Comparator.comparingInt(j -> BlockPos.of(j.pos()).getY()));
         for (Job j : found) { pending.add(j.pos()); jobs.addLast(j); }
         if (!found.isEmpty() && found.size() > 20) tell(lvl, "§cLos aldeanos empiezan a reparar los daños...");
     }
 
     public void forget(BlockPos p) { blueprint.remove(p.asLong()); }
 
-    // ================= trabajos =================
-    /** Añade un bloque al plano y a la cola de construcción. */
     public void put(BlockPos p, BlockState s) {
         long k = p.asLong();
         blueprint.put(k, s);
         if (pending.add(k)) jobs.addLast(new Job(k, s));
     }
 
-    /** Encola la retirada de lo que estorbe (árboles, hierba alta...). No se guarda en el plano. */
     public void clear(ServerLevel lvl, BlockPos p) {
         if (!lvl.getBlockState(p).isAir()) jobs.addLast(new Job(p.asLong(), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState()));
     }
@@ -162,7 +157,6 @@ public class Village {
 
     public void release(Job j) { jobs.addLast(j); }
 
-    // ================= planificador de obras =================
     public int beds() {
         int n = 0;
         for (BlockState s : blueprint.values())
@@ -190,7 +184,6 @@ public class Village {
         if (ok) tell(lvl, "§eLos aldeanos empiezan una nueva obra (necesitan madera/piedra).");
     }
 
-    /** Busca un solar llano. side: 0-3 para preferir ese lado, -1 cualquiera. Devuelve (x, yMáx, z) o null. */
     public BlockPos findSite(ServerLevel lvl, int half, int minR, int maxR, int maxSlope, int side) {
         RandomSource r = lvl.getRandom();
         for (int i = 0; i < 40; i++) {
@@ -227,11 +220,9 @@ public class Village {
         return null;
     }
 
-    // ================= crecimiento =================
     private void breed(ServerLevel lvl, List<Villager> adults, int total) {
         if (adults.size() < 2 || adults.size() >= 40 || total >= beds() || food < 4) return;
-        EntityType<?> villagerType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("villager"));
-        Villager baby = (Villager) villagerType.create(lvl, EntitySpawnReason.BREEDING);
+        Villager baby = EntityType.VILLAGER.create(lvl, EntitySpawnReason.BREEDING);
         if (baby == null) return;
         food -= 4;
         Villager parent = adults.get(lvl.getRandom().nextInt(adults.size()));
@@ -241,7 +232,6 @@ public class Village {
         lvl.sendParticles(ParticleTypes.HEART, parent.getX(), parent.getY() + 1.5, parent.getZ(), 6, .3, .3, .3, 0);
     }
 
-    // ================= torretas (dispensadores en torres) =================
     private void fireTurrets(ServerLevel lvl) {
         for (long k : turrets) {
             if (ammo <= 0) return;
@@ -254,21 +244,19 @@ public class Village {
                 if (d < best) { best = d; t = m; }
             }
             if (t == null) continue;
-            EntityType<?> arrowType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("arrow"));
-            var arrow = arrowType.create(lvl, EntitySpawnReason.TRIGGERED);
+            Arrow arrow = EntityType.ARROW.create(lvl, EntitySpawnReason.TRIGGERED);
             if (arrow == null) continue;
             arrow.setPos(p.getX() + .5, p.getY() + 1.2, p.getZ() + .5);
             double dx = t.getX() - arrow.getX(), dy = t.getY(0.33) - arrow.getY(), dz = t.getZ() - arrow.getZ();
             double hd = Math.sqrt(dx * dx + dz * dz);
             arrow.shoot(dx, dy + hd * 0.2, dz, 1.9f, 2.0f);
-            arrow.addTag("vr_turret");
+            turretArrowUuids.add(arrow.getUUID());
             lvl.addFreshEntity(arrow);
             lvl.playSound(null, p, SoundEvents.DISPENSER_LAUNCH, SoundSource.BLOCKS, 1f, 1.2f);
             ammo--;
         }
     }
 
-    // ================= persistencia =================
     public Dto toDto() {
         Dto d = new Dto();
         d.cx = center.getX(); d.cy = center.getY(); d.cz = center.getZ();
