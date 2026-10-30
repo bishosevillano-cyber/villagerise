@@ -92,11 +92,11 @@ public final class Hive {
         int spiders = walled ? intensity / 2 : 0;                    // trepan murallas
         int ravagers = intensity / 5;
 
-        add(lvl, w, EntityType.ZOMBIE, zombies, intensity, split);
-        add(lvl, w, EntityType.SKELETON, skeletons, intensity, split);
-        add(lvl, w, EntityType.CREEPER, creepers, intensity, split);
-        add(lvl, w, EntityType.SPIDER, spiders, intensity, split);
-        add(lvl, w, EntityType.RAVAGER, ravagers, intensity, split);
+        add(lvl, w, EntityType.zombie, zombies, intensity, split);
+        add(lvl, w, EntityType.skeleton, skeletons, intensity, split);
+        add(lvl, w, EntityType.creeper, creepers, intensity, split);
+        add(lvl, w, EntityType.spider, spiders, intensity, split);
+        add(lvl, w, EntityType.ravager, ravagers, intensity, split);
 
         v.tell(lvl, "§4Un cuerno resuena a lo lejos... algo se organiza en la oscuridad. (amenaza " + intensity + ")");
         return w;
@@ -126,7 +126,7 @@ public final class Hive {
     private static void buff(Mob m, int i) {
         AttributeInstance hp = m.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) { hp.setBaseValue(hp.getBaseValue() + i * 2); m.setHealth(m.getMaxHealth()); }
-        if (m.getType() == EntityType.ZOMBIE) {
+        if (m.getType() == EntityType.zombie) {
             if (i >= 2) m.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
             if (i >= 3) m.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
             if (i >= 4) m.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
@@ -163,14 +163,14 @@ public final class Hive {
 
         for (Mob m : alive) {
             int g = w.group.getOrDefault(m.getUUID(), 0);
-            if (m.getType() == EntityType.CREEPER && (v.wallMask >> w.side[g] & 1) == 1) {
+            if (m.getType() == EntityType.creeper && (v.wallMask >> w.side[g] & 1) == 1) {
                 // zapadores: primero a la muralla de su lado
                 int bx = v.center.getX() + Util.DX[w.side[g]] * 26, bz = v.center.getZ() + Util.DZ[w.side[g]] * 26;
                 if (m.distanceToSqr(bx, m.getY(), bz) > 64) { m.getNavigation().moveTo(bx, m.getY(), bz, 1.1); continue; }
             }
             if (prio != null) {
                 m.setTarget(prio);
-                if (m.getType() != EntityType.SKELETON && m.tickCount % 40 == 0) m.getNavigation().moveTo(prio, 1.1);
+                if (m.getType() != EntityType.skeleton && m.tickCount % 40 == 0) m.getNavigation().moveTo(prio, 1.1);
             } else if (m.getTarget() == null) {
                 ServerPlayer p = (ServerPlayer) lvl.getNearestPlayer(m, 48);
                 if (p != null) m.setTarget(p);
