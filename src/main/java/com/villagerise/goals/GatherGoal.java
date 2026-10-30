@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Animation;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.villager.Villager;
@@ -94,7 +94,7 @@ public class GatherGoal extends Goal {
             case 1 -> { if (s.is(BlockTags.LOGS)) { l.destroyBlock(target, false); village.wood += 2; } }
             case 2 -> { if (s.is(BlockTags.BASE_STONE_OVERWORLD)) { l.destroyBlock(target, false); village.stone += 1; } }
         }
-        v.swing(InteractionHand.MAIN_HAND, LivingEntity.SwingAnimation.DEFAULT, true);
+        v.swing(InteractionHand.MAIN_HAND, Animation.DEFAULT, true);
         target = null;
     }
 }
