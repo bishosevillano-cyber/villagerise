@@ -71,7 +71,7 @@ public class BuildGoal extends Goal {
             l.setBlock(t, job.state(), 2);
             l.playSound(null, t, job.state().getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1f, 1f);
         }
-        v.swing(InteractionHand.MAIN_HAND, true);
+        v.swing(InteractionHand.MAIN_HAND, net.minecraft.world.entity.SwingAnimation.DEFAULT);
         village.placed(job);
         job = village.claim(); // siguiente trabajo sin parar
         ticks = 0;
