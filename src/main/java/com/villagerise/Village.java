@@ -228,7 +228,7 @@ public class Village {
     // ================= crecimiento =================
     private void breed(ServerLevel lvl, List<Villager> adults, int total) {
         if (adults.size() < 2 || adults.size() >= 40 || total >= beds() || food < 4) return;
-        Villager baby = EntityType.villager.create(lvl, EntitySpawnReason.BREEDING);
+        Villager baby = EntityType.VILLAGER.create(lvl, EntitySpawnReason.BREEDING);
         if (baby == null) return;
         food -= 4;
         Villager parent = adults.get(lvl.getRandom().nextInt(adults.size()));
@@ -251,7 +251,7 @@ public class Village {
                 if (d < best) { best = d; t = m; }
             }
             if (t == null) continue;
-            var arrow = EntityType.arrow.create(lvl, EntitySpawnReason.TRIGGERED);
+            var arrow = EntityType.ARROW.create(lvl, EntitySpawnReason.TRIGGERED);
             if (arrow == null) continue;
             arrow.setPos(p.getX() + .5, p.getY() + 1.2, p.getZ() + .5);
             double dx = t.getX() - arrow.getX(), dy = t.getY(0.33) - arrow.getY(), dz = t.getZ() - arrow.getZ();
