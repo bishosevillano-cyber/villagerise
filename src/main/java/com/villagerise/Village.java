@@ -2,7 +2,9 @@ package com.villagerise;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -228,7 +230,8 @@ public class Village {
     // ================= crecimiento =================
     private void breed(ServerLevel lvl, List<Villager> adults, int total) {
         if (adults.size() < 2 || adults.size() >= 40 || total >= beds() || food < 4) return;
-        Villager baby = EntityType.villager.create(lvl, EntitySpawnReason.BREEDING);
+        EntityType<?> villagerType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("villager"));
+        Villager baby = (Villager) villagerType.create(lvl, EntitySpawnReason.BREEDING);
         if (baby == null) return;
         food -= 4;
         Villager parent = adults.get(lvl.getRandom().nextInt(adults.size()));
@@ -251,7 +254,8 @@ public class Village {
                 if (d < best) { best = d; t = m; }
             }
             if (t == null) continue;
-            var arrow = EntityType.arrow.create(lvl, EntitySpawnReason.TRIGGERED);
+            EntityType<?> arrowType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("arrow"));
+            var arrow = arrowType.create(lvl, EntitySpawnReason.TRIGGERED);
             if (arrow == null) continue;
             arrow.setPos(p.getX() + .5, p.getY() + 1.2, p.getZ() + .5);
             double dx = t.getX() - arrow.getX(), dy = t.getY(0.33) - arrow.getY(), dz = t.getZ() - arrow.getZ();
