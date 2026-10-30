@@ -51,7 +51,7 @@ public class FightGoal extends Goal {
             if (v.tickCount % 10 == 0) v.getNavigation().moveTo(t, 0.75);
         } else if (--cooldown <= 0) {
             cooldown = 20;
-            v.swing(InteractionHand.MAIN_HAND, true);
+            v.swing(InteractionHand.MAIN_HAND, net.minecraft.world.entity.SwingAnimation.DEFAULT);
             if (v.level() instanceof ServerLevel sl) t.hurtServer(sl, v.damageSources().mobAttack(v), DAMAGE);
         }
     }
