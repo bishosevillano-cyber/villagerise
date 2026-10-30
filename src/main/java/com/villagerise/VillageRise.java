@@ -17,7 +17,7 @@ public class VillageRise implements ModInitializer {
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTED.register(VillageManager::load);
         ServerLifecycleEvents.SERVER_STOPPING.register(VillageManager::save);
-        ServerTickEvents.END_WORLD_TICK.register(VillageManager::tick);
+        ServerTickEvents.END_SERVER_TICK.register(server -> VillageManager.tick(server.overworld()));
         ServerLivingEntityEvents.AFTER_DEATH.register(VillageManager::onDeath);
         // Si un jugador rompe un bloque a propósito, los aldeanos NO lo reconstruyen.
         PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, be) -> {
