@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.villager.Villager;
@@ -62,7 +63,7 @@ public class BuildGoal extends Goal {
         double d = v.distanceToSqr(t.getX() + .5, t.getY() + .5, t.getZ() + .5);
         if (d > 25) {
             if (ticks % 20 == 1) v.getNavigation().moveTo(t.getX() + .5, t.getY(), t.getZ() + .5, 0.7);
-            if (ticks < 400) return; // si no llega en 20 s, construye "a distancia" (torres altas, etc.)
+            if (ticks < 400) return;
         }
         ServerLevel l = (ServerLevel) v.level();
         if (job.state().isAir()) {
@@ -71,9 +72,9 @@ public class BuildGoal extends Goal {
             l.setBlock(t, job.state(), 2);
             l.playSound(null, t, job.state().getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1f, 1f);
         }
-        v.swing(InteractionHand.MAIN_HAND, net.minecraft.world.entity.SwingAnimation.DEFAULT, true);
+        v.swing(InteractionHand.MAIN_HAND, LivingEntity.SwingAnimation.DEFAULT, true);
         village.placed(job);
-        job = village.claim(); // siguiente trabajo sin parar
+        job = village.claim();
         ticks = 0;
     }
 }
