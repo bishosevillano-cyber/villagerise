@@ -45,13 +45,13 @@ public class FightGoal extends Goal {
     public void tick() {
         LivingEntity t = v.getTarget();
         if (t == null) return;
-        v.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET); // el cerebro vanilla quiere huir: lo anulamos
+        v.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
         v.getLookControl().setLookAt(t, 30f, 30f);
         if (v.distanceToSqr(t) > 3.5) {
             if (v.tickCount % 10 == 0) v.getNavigation().moveTo(t, 0.75);
         } else if (--cooldown <= 0) {
             cooldown = 20;
-            v.swing(InteractionHand.MAIN_HAND, net.minecraft.world.entity.SwingAnimation.DEFAULT, true);
+            v.swing(InteractionHand.MAIN_HAND, LivingEntity.SwingAnimation.DEFAULT, true);
             if (v.level() instanceof ServerLevel sl) t.hurtServer(sl, v.damageSources().mobAttack(v), DAMAGE);
         }
     }
