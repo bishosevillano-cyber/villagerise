@@ -56,10 +56,10 @@ public final class VillageManager {
         if (!(e.level() instanceof ServerLevel l)) return;
         Village v = villageAt(l, e.blockPosition(), false);
         if (v == null) return;
-        if (e.getScoreboardTags().contains("vr_attacker")) { // el enemigo aprende de dónde y cómo mueren los suyos
+        if (e.getTags().contains("vr_attacker")) { // el enemigo aprende de dónde y cómo mueren los suyos
             v.deathsBySide[Util.dirOf(e.getX() - v.center.getX(), e.getZ() - v.center.getZ())]++;
             Entity direct = src.getDirectEntity();
-            if (direct != null && direct.getScoreboardTags().contains("vr_turret")) v.turretKills++;
+            if (direct != null && direct.getTags().contains("vr_turret")) v.turretKills++;
         } else if (e instanceof Villager && v.wave != null) {
             v.wave.losses++;
         }
