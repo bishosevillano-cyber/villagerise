@@ -81,7 +81,7 @@ public class Village {
 
     public void tell(ServerLevel lvl, String msg) {
         for (ServerPlayer p : lvl.players())
-            if (p.blockPosition().distSqr(center) < 120 * 120) p.displayClientMessage(Component.literal(msg), false);
+            if (p.blockPosition().distSqr(center) < 120 * 120) p.sendSystemMessage(Component.literal(msg));
     }
 
     // ================= reparación =================
