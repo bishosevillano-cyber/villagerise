@@ -2,6 +2,8 @@ package com.villagerise;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.*;
@@ -40,8 +42,8 @@ public final class Blueprints {
         for (int y = 0; y <= 2; y++)
             for (int dx = -2; dx <= 2; dx++)
                 for (int dz = -2; dz <= 2; dz++) {
-                    if (Math.abs(dx) != 2 && Math.abs(dz) != 2) continue;      // solo el perímetro
-                    if (dx == 0 && dz == 2 && y <= 1) continue;              // hueco de la puerta
+                    if (Math.abs(dx) != 2 && Math.abs(dz) != 2) continue;
+                    if (dx == 0 && dz == 2 && y <= 1) continue;
                     BlockState s;
                     if (Math.abs(dx) == 2 && Math.abs(dz) == 2) s = Blocks.OAK_LOG.defaultBlockState();
                     else if (y == 1 && (dx == 0 || dz == 0)) s = Blocks.GLASS_PANE.defaultBlockState();
@@ -51,9 +53,9 @@ public final class Blueprints {
         BlockState door = Blocks.OAK_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.NORTH);
         v.put(new BlockPos(cx, y0, cz + 2), door);
         v.put(new BlockPos(cx, y0 + 1, cz + 2), door.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER));
-        BlockState bed = Blocks.WHITE_BED.defaultBlockState().setValue(BedBlock.FACING, Direction.NORTH);
-        v.put(new BlockPos(cx, y0, cz), bed.setValue(BedBlock.PART, BedPart.FOOT));
-        v.put(new BlockPos(cx, y0, cz - 1), bed.setValue(BedBlock.PART, BedPart.HEAD));
+        BlockState bedState = BuiltInRegistries.BLOCK.get(ResourceLocation.withDefaultNamespace("white_bed")).defaultBlockState().setValue(BedBlock.FACING, Direction.NORTH);
+        v.put(new BlockPos(cx, y0, cz), bedState.setValue(BedBlock.PART, BedPart.FOOT));
+        v.put(new BlockPos(cx, y0, cz - 1), bedState.setValue(BedBlock.PART, BedPart.HEAD));
         for (int dx = -2; dx <= 2; dx++) for (int dz = -2; dz <= 2; dz++) v.put(new BlockPos(cx + dx, y0 + 3, cz + dz), planks);
         return true;
     }
@@ -100,13 +102,12 @@ public final class Blueprints {
                     boolean ring = Math.abs(dx) == half || Math.abs(dz) == half;
                     boolean floor = (yy == h - 1 || yy == midFloor);
                     if (!ring && !floor) continue;
-                    if (ring && dx == 0 && dz == half && yy < 2) continue;    // puerta
-                    if (!ring && dx == 0 && dz == -half + 1) continue;        // hueco de la escalera
+                    if (ring && dx == 0 && dz == half && yy < 2) continue;
+                    if (!ring && dx == 0 && dz == -half + 1) continue;
                     v.put(new BlockPos(cx + dx, y0 + yy, cz + dz), BRICK);
                 }
         BlockState ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.SOUTH);
         for (int yy = 0; yy < h; yy++) v.put(new BlockPos(cx, y0 + yy, cz - half + 1), ladder);
-        // torretas en el centro de cada lado + almenas
         BlockPos[] tp = {new BlockPos(cx, y0 + h, cz - half), new BlockPos(cx, y0 + h, cz + half),
                          new BlockPos(cx + half, y0 + h, cz), new BlockPos(cx - half, y0 + h, cz)};
         Direction[] td = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
