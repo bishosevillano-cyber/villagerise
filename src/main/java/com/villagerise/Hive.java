@@ -1,8 +1,6 @@
 package com.villagerise;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.*;
@@ -19,19 +17,9 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
-/**
- * "Mente colmena" de los enemigos. Por cada aldea:
- *  - Analiza qué lado está MENOS defendido (torretas, torres, murallas y bajas previas).
- *  - Adapta la composición (creepers contra murallas, más esqueletos contra torretas, ravagers cuando escala...).
- *  - Con intensidad >= 3 se divide en dos grupos (pinza) que esperan en un punto de reunión
- *    y atacan A LA VEZ cuando todos han llegado.
- *  - Concentra el fuego en el defensor más débil.
- *  - Aprende: si la aldea resiste sin bajas, la siguiente oleada escala; si sufre muchas bajas, se relaja.
- */
 public final class Hive {
     private Hive() {}
 
-    /** Pon true para probar: oleadas cada ~30 s y también de día. */
     public static final boolean DEBUG_FAST_WAVES = false;
 
     public static class Wave {
@@ -39,7 +27,7 @@ public final class Hive {
         public final Map<UUID, Integer> group = new HashMap<>();
         public final Vec3[] stage = new Vec3[2];
         public final int[] side = new int[2];
-        public int phase; // 0 = reunión, 1 = asalto
+        public int phase;
         public long start;
         public int losses;
     }
@@ -60,7 +48,6 @@ public final class Hive {
         manage(lvl, v, v.wave);
     }
 
-    // ---------------------------------------------------------------- lanzar oleada
     private static Wave launch(ServerLevel lvl, Village v) {
         int cx = v.center.getX(), cz = v.center.getZ();
         double[] score = new double[4];
@@ -68,7 +55,7 @@ public final class Hive {
         for (long k : v.towers) { BlockPos p = BlockPos.of(k); score[Util.dirOf(p.getX() - cx, p.getZ() - cz)] += 3; }
         for (int i = 0; i < 4; i++) {
             if ((v.wallMask >> i & 1) == 1) score[i] += 4;
-            score[i] += v.deathsBySide[i] * 0.5; // por donde ya murieron muchos, ahora evitan
+            score[i] += v.deathsBySide[i] * 0.5;
         }
         Integer[] order = {0, 1, 2, 3};
         Arrays.sort(order, Comparator.comparingDouble(i -> score[i]));
@@ -89,16 +76,16 @@ public final class Hive {
         if (split) v.attacksBySide[w.side[1]]++;
 
         int zombies = 3 + intensity * 3 / 2;
-        int skeletons = fort ? intensity + 1 : intensity / 2;        // más arqueros contra torretas
-        int creepers = (walled ? 1 + intensity / 2 : intensity / 3) + (v.turretKills >= 5 ? 2 : 0); // zapadores
-        int spiders = walled ? intensity / 2 : 0;                    // trepan murallas
+        int skeletons = fort ? intensity + 1 : intensity / 2;
+        int creepers = (walled ? 1 + intensity / 2 : intensity / 3) + (v.turretKills >= 5 ? 2 : 0);
+        int spiders = walled ? intensity / 2 : 0;
         int ravagers = intensity / 5;
 
-        add(lvl, w, (EntityType<Mob>) BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("zombie")), zombies, intensity, split);
-        add(lvl, w, (EntityType<Mob>) BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("skeleton")), skeletons, intensity, split);
-        add(lvl, w, (EntityType<Mob>) BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("creeper")), creepers, intensity, split);
-        add(lvl, w, (EntityType<Mob>) BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("spider")), spiders, intensity, split);
-        add(lvl, w, (EntityType<Mob>) BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("ravager")), ravagers, intensity, split);
+        add(lvl, w, EntityType.ZOMBIE, zombies, intensity, split);
+        add(lvl, w, EntityType.SKELETON, skeletons, intensity, split);
+        add(lvl, w, EntityType.CREEPER, creepers, intensity, split);
+        add(lvl, w, EntityType.SPIDER, spiders, intensity, split);
+        add(lvl, w, EntityType.RAVAGER, ravagers, intensity, split);
 
         v.tell(lvl, "§4Un cuerno resuena a lo lejos... algo se organiza en la oscuridad. (amenaza " + intensity + ")");
         return w;
@@ -117,7 +104,6 @@ public final class Hive {
             m.setPos(x + .5, y, z + .5);
             m.finalizeSpawn(lvl, lvl.getCurrentDifficultyAt(p), EntitySpawnReason.EVENT, null);
             m.setPersistenceRequired();
-            m.addTag("vr_attacker");
             buff(m, intensity);
             lvl.addFreshEntity(m);
             w.ids.add(m.getUUID());
@@ -128,21 +114,20 @@ public final class Hive {
     private static void buff(Mob m, int i) {
         AttributeInstance hp = m.getAttribute(Attributes.MAX_HEALTH);
         if (hp != null) { hp.setBaseValue(hp.getBaseValue() + i * 2); m.setHealth(m.getMaxHealth()); }
-        if (m.getType() == BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("zombie"))) {
+        if (m.getType() == EntityType.ZOMBIE) {
             if (i >= 2) m.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
             if (i >= 3) m.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
             if (i >= 4) m.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
         }
     }
 
-    // ---------------------------------------------------------------- coordinación
     private static void manage(ServerLevel lvl, Village v, Wave w) {
         List<Mob> alive = new ArrayList<>();
         for (UUID id : w.ids) if (lvl.getEntity(id) instanceof Mob m && m.isAlive()) alive.add(m);
         long now = lvl.getGameTime();
         if (alive.isEmpty() || now - w.start > 9000) { end(lvl, v, w, alive); return; }
 
-        if (w.phase == 0) { // REUNIÓN: nadie ataca hasta que todos están listos
+        if (w.phase == 0) {
             boolean ready = true;
             for (Mob m : alive) {
                 Vec3 st = w.stage[w.group.getOrDefault(m.getUUID(), 0)];
@@ -155,7 +140,6 @@ public final class Hive {
             return;
         }
 
-        // ASALTO: foco en el defensor más débil cerca del centroide del grupo
         double ax = 0, ay = 0, az = 0;
         for (Mob m : alive) { ax += m.getX(); ay += m.getY(); az += m.getZ(); }
         BlockPos c = BlockPos.containing(ax / alive.size(), ay / alive.size(), az / alive.size());
@@ -163,19 +147,15 @@ public final class Hive {
         defenders.sort(Comparator.<Villager>comparingInt(x -> Util.role(x) == 2 ? 0 : 1).thenComparingDouble(Villager::getHealth));
         Villager prio = defenders.isEmpty() ? null : defenders.get(0);
 
-        EntityType<?> creeperType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("creeper"));
-        EntityType<?> skeletonType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.withDefaultNamespace("skeleton"));
-
         for (Mob m : alive) {
             int g = w.group.getOrDefault(m.getUUID(), 0);
-            if (m.getType() == creeperType && (v.wallMask >> w.side[g] & 1) == 1) {
-                // zapadores: primero a la muralla de su lado
+            if (m.getType() == EntityType.CREEPER && (v.wallMask >> w.side[g] & 1) == 1) {
                 int bx = v.center.getX() + Util.DX[w.side[g]] * 26, bz = v.center.getZ() + Util.DZ[w.side[g]] * 26;
                 if (m.distanceToSqr(bx, m.getY(), bz) > 64) { m.getNavigation().moveTo(bx, m.getY(), bz, 1.1); continue; }
             }
             if (prio != null) {
                 m.setTarget(prio);
-                if (m.getType() != skeletonType && m.tickCount % 40 == 0) m.getNavigation().moveTo(prio, 1.1);
+                if (m.getType() != EntityType.SKELETON && m.tickCount % 40 == 0) m.getNavigation().moveTo(prio, 1.1);
             } else if (m.getTarget() == null) {
                 ServerPlayer p = (ServerPlayer) lvl.getNearestPlayer(m, 48);
                 if (p != null) m.setTarget(p);
