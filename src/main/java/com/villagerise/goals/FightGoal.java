@@ -3,6 +3,7 @@ package com.villagerise.goals;
 import com.villagerise.Util;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Animation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -51,7 +52,7 @@ public class FightGoal extends Goal {
             if (v.tickCount % 10 == 0) v.getNavigation().moveTo(t, 0.75);
         } else if (--cooldown <= 0) {
             cooldown = 20;
-            v.swing(InteractionHand.MAIN_HAND, LivingEntity.SwingAnimation.DEFAULT, true);
+            v.swing(InteractionHand.MAIN_HAND, Animation.DEFAULT, true);
             if (v.level() instanceof ServerLevel sl) t.hurtServer(sl, v.damageSources().mobAttack(v), DAMAGE);
         }
     }
