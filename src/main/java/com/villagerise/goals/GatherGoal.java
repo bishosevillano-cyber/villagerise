@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.villager.Villager;
@@ -86,14 +87,14 @@ public class GatherGoal extends Goal {
         switch (type) {
             case 0 -> {
                 if (s.getBlock() instanceof CropBlock c && c.isMaxAge(s)) {
-                    l.setBlock(target, c.getStateForAge(0), 2); // replanta
+                    l.setBlock(target, c.getStateForAge(0), 2);
                     village.food += 2;
                 }
             }
             case 1 -> { if (s.is(BlockTags.LOGS)) { l.destroyBlock(target, false); village.wood += 2; } }
             case 2 -> { if (s.is(BlockTags.BASE_STONE_OVERWORLD)) { l.destroyBlock(target, false); village.stone += 1; } }
         }
-        v.swing(InteractionHand.MAIN_HAND, net.minecraft.world.entity.SwingAnimation.DEFAULT, true);
+        v.swing(InteractionHand.MAIN_HAND, LivingEntity.SwingAnimation.DEFAULT, true);
         target = null;
     }
 }
