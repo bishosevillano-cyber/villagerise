@@ -41,7 +41,7 @@ public final class Blueprints {
             for (int dx = -2; dx <= 2; dx++)
                 for (int dz = -2; dz <= 2; dz++) {
                     if (Math.abs(dx) != 2 && Math.abs(dz) != 2) continue;      // solo el perímetro
-                    if (dx == 0 && dz == 2 && y <= 1) continue;                // hueco de la puerta
+                    if (dx == 0 && dz == 2 && y <= 1) continue;              // hueco de la puerta
                     BlockState s;
                     if (Math.abs(dx) == 2 && Math.abs(dz) == 2) s = Blocks.OAK_LOG.defaultBlockState();
                     else if (y == 1 && (dx == 0 || dz == 0)) s = Blocks.GLASS_PANE.defaultBlockState();
@@ -51,7 +51,7 @@ public final class Blueprints {
         BlockState door = Blocks.OAK_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.NORTH);
         v.put(new BlockPos(cx, y0, cz + 2), door);
         v.put(new BlockPos(cx, y0 + 1, cz + 2), door.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER));
-       BlockState bed = Blocks.WHITE_BED.defaultBlockState().setValue(BedBlock.FACING, Direction.NORTH);
+        BlockState bed = Blocks.white_bed.defaultBlockState().setValue(BedBlock.FACING, Direction.NORTH);
         v.put(new BlockPos(cx, y0, cz), bed.setValue(BedBlock.PART, BedPart.FOOT));
         v.put(new BlockPos(cx, y0, cz - 1), bed.setValue(BedBlock.PART, BedPart.HEAD));
         for (int dx = -2; dx <= 2; dx++) for (int dz = -2; dz <= 2; dz++) v.put(new BlockPos(cx + dx, y0 + 3, cz + dz), planks);
@@ -83,7 +83,7 @@ public final class Blueprints {
     public static boolean tower(ServerLevel lvl, Village v, int size, int h, boolean keep) {
         int half = size / 2;
         BlockPos o = keep ? v.findSite(lvl, half, 0, 8, 3, -1)
-                          : v.findSite(lvl, half, 14, 24, 3, v.mostAttackedSide());
+                        : v.findSite(lvl, half, 14, 24, 3, v.mostAttackedSide());
         if (o == null) return false;
         int cx = o.getX(), cz = o.getZ(), y0 = o.getY();
         for (int y = y0; y <= y0 + h + 2; y++)
@@ -100,8 +100,8 @@ public final class Blueprints {
                     boolean ring = Math.abs(dx) == half || Math.abs(dz) == half;
                     boolean floor = (yy == h - 1 || yy == midFloor);
                     if (!ring && !floor) continue;
-                    if (ring && dx == 0 && dz == half && yy < 2) continue;   // puerta
-                    if (!ring && dx == 0 && dz == -half + 1) continue;       // hueco de la escalera
+                    if (ring && dx == 0 && dz == half && yy < 2) continue;    // puerta
+                    if (!ring && dx == 0 && dz == -half + 1) continue;        // hueco de la escalera
                     v.put(new BlockPos(cx + dx, y0 + yy, cz + dz), BRICK);
                 }
         BlockState ladder = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.SOUTH);
