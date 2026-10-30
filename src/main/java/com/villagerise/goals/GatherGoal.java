@@ -93,7 +93,7 @@ public class GatherGoal extends Goal {
             case 1 -> { if (s.is(BlockTags.LOGS)) { l.destroyBlock(target, false); village.wood += 2; } }
             case 2 -> { if (s.is(BlockTags.BASE_STONE_OVERWORLD)) { l.destroyBlock(target, false); village.stone += 1; } }
         }
-        v.swing(InteractionHand.MAIN_HAND, true);
+        v.swing(InteractionHand.MAIN_HAND, net.minecraft.world.entity.SwingAnimation.DEFAULT);
         target = null;
     }
 }
