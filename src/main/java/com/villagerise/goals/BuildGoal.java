@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Animation;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.villager.Villager;
@@ -72,7 +72,7 @@ public class BuildGoal extends Goal {
             l.setBlock(t, job.state(), 2);
             l.playSound(null, t, job.state().getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1f, 1f);
         }
-        v.swing(InteractionHand.MAIN_HAND, LivingEntity.SwingAnimation.DEFAULT, true);
+        v.swing(InteractionHand.MAIN_HAND, Animation.DEFAULT, true);
         village.placed(job);
         job = village.claim();
         ticks = 0;
