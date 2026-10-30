@@ -19,6 +19,6 @@ public class FighterTargetGoal extends NearestAttackableTargetGoal<Monster> {
     @Override
     public boolean canUse() {
         if (Util.role(v) != 2 || v.isBaby() || !super.canUse()) return false;
-        return !(this.target instanceof NeutralMob) && this.target.getType() != EntityType.enderman;
+        return !(this.target instanceof NeutralMob) && this.target.getType() != EntityType.ENDERMAN;
     }
 }
